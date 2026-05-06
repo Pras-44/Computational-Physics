@@ -1,0 +1,69 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
+from scipy.ndimage import gaussian_filter1d
+
+# Aesthetic Font Settings (Preference)
+plt.rcParams.update({
+    "font.family": "serif",
+    "font.serif": ["Times New Roman"],
+    "mathtext.fontset": "stix"
+})
+
+
+# ==========================================
+# 1. Simulate 1,000,000 Muons
+# ==========================================
+N_particles = 1_000_000
+thickness = 5.0 # cm thick scintillator
+dE_dx = 2.0 # PDG Standard: ~2 MeV/cm
+
+# Generate cosmic ray angular distribution
+u = np.random.uniform(0, 1, N_particles)
+theta = np.arccos(u**(1/3))
+path_lengths = thickness / np.cos(theta)
+
+
+# Filter out extreme outliers
+path_lengths = path_lengths[path_lengths < 30.0]
+
+# The raw simulated energies
+simulated_energies = path_lengths * dE_dx
+
+# ==========================================
+# 2. Plotting & Formatting
+# ==========================================
+plt.figure(figsize=(10, 6))
+
+# Plot for Ideal Monte Carlo
+counts, bin_edges, _ = plt.hist(simulated_energies, bins=150, range=(0, 30),
+color='lightgray', edgecolor='gray', alpha=0.7,
+label='Theoretical MC')
+
+# Gaussian "Smear" (Resolution Function)
+bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
+smeared_counts = gaussian_filter1d(counts.astype(float), sigma=2.5)
+
+# Plot the Smeared Monte Carlo as the solid RED line
+plt.plot(bin_centers, smeared_counts, color='#CC0000', linewidth=2.5,
+label='Experimental MC (Detector Resolution)')
+
+# Format for plot itself
+plt.title('Simulated Muon Energy Deposition', fontsize=16)
+plt.xlabel('Energy Deposition (MeV)', fontsize=14)
+plt.ylabel('Counts (Simulated)', fontsize=14)
+plt.xlim(0, 30)
+
+# Format Y-axis to have commas
+ax = plt.gca()
+ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, p: format(int(x), ',')))
+
+plt.legend(fontsize=12)
+plt.grid(True, linestyle='-', alpha=0.7)
+plt.tight_layout()
+
+# Save the final image
+plt.savefig('monte_carlo_energy_binned.png', dpi=300)
+print("'monte_carlo_energy_binned.png' has been saved.")
+
+#PL
