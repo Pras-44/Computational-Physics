@@ -1,2 +1,2 @@
 # Computational-Physics
-Contains a number of computational approaches to data acquired during physics labs.
+Contains a number of computational approaches for basic analysis for physics
